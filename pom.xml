@@ -143,7 +143,7 @@
     </dependencies>
 
     <build>
-        <defaultGoal>spring-boot:run</defaultGoal>
+        <defaultGoal>package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -180,6 +180,11 @@
         <profile>
             <!-- Production mode is activated using -Pproduction -->
             <id>production</id>
+            <activation>
+                <property>
+                    <name>!dev</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
