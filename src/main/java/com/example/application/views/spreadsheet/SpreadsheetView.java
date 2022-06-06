@@ -1,11 +1,11 @@
 package com.example.application.views.spreadsheet;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.spreadsheet.Spreadsheet;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -39,13 +39,12 @@ public class SpreadsheetView extends VerticalLayout {
 
         // Only working with exact pixel setups for height and width:
         //Note: would be nice to push this to documentation OR fix it to work with percentages width and height.
-        sheet.setHeight("600px");
-        sheet.setWidth("600px");
+        sheet.setHeight("900px");
+        sheet.setWidth("900px");
 
-        TextArea textArea = new TextArea();
-        textArea.setLabel("Website to import from:");
-        textArea.setWidth("460px");
-        textArea.setHeight("45px");
+        TextField textField = new TextField();
+        textField.setLabel("Google Spreadsheet link to import from:");
+        textField.setWidth("900px");
 
         Button importBtn = new Button();
         importBtn.setText("Import");
@@ -56,7 +55,8 @@ public class SpreadsheetView extends VerticalLayout {
         importBtn.addClickListener(clickEvent -> {
             System.out.println("Button was clicked");
             try {
-                File file = downloadFile(textArea.getValue());
+                String fixedUrl = fixURL(textField.getValue());
+                File file = downloadFile(fixedUrl);
                 boolean result = loadFileToExcel(file, sheet);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -64,14 +64,22 @@ public class SpreadsheetView extends VerticalLayout {
         });
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.add(textArea, importBtn);
+        horizontalLayout.add(textField, importBtn);
 
         add(horizontalLayout, sheet);
     }
 
-    // https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/export?format=csv
-    // curl -L "https://docs.google.com/spreadsheets/d/1XsfK2TN418FuEstNGG2eI9FmEV-4eY-FnndigHWIhk4/export?gid=0&format=xlsx"
-    // curl -L "https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/export?gid=0&format=xlsx"
+    // FROM: https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/edit#gid=0
+    // TO:  https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/export?gid=0&format=xlsx
+    private String fixURL(String URL) {
+        String fixedUrl = URL.stripLeading().stripTrailing();
+        String fileFormatAndExport = "export?gid=0&format=xlsx";
+        String oldPart = "edit#gid=0";
+        fixedUrl = fixedUrl.replace(oldPart, fileFormatAndExport);
+
+        return fixedUrl;
+    }
+
     private File downloadFile(String fileUrl) throws IOException {
         File file = new File("./src/main/resources/downloaded.xlsx");
         FileUtils.copyURLToFile(
@@ -83,12 +91,7 @@ public class SpreadsheetView extends VerticalLayout {
     }
 
     private boolean loadFileToExcel(File file, Spreadsheet sheet) throws IOException {
-        file = new File("./src/main/resources/Test Hackathon - Sheet1.xlsx");
-
         sheet.setWorkbook(new XSSFWorkbook(new FileInputStream(file)));
-
-        // sheet.refreshAllCellValues();
-        // UI.getCurrent().getPage().reload();
         return true;
     }
 
