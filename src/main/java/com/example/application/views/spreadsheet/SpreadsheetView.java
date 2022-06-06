@@ -4,7 +4,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.spreadsheet.Spreadsheet;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -25,20 +24,6 @@ public class SpreadsheetView extends VerticalLayout {
     public SpreadsheetView() {
         Spreadsheet sheet = new Spreadsheet();
 
-        // Not working if just added:
-        // add(sheet);
-
-        // Not working
-        // sheet.setWidthFull();
-        /// sheet.setHeightFull();
-
-        // Not working:
-        // setJustifyContentMode(JustifyContentMode.CENTER);
-        // setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-        // getStyle().set("text-align", "center");
-
-        // Only working with exact pixel setups for height and width:
-        //Note: would be nice to push this to documentation OR fix it to work with percentages width and height.
         sheet.setHeight("900px");
         sheet.setWidth("900px");
 
@@ -71,9 +56,10 @@ public class SpreadsheetView extends VerticalLayout {
 
     // FROM: https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/edit#gid=0
     // TO:  https://docs.google.com/spreadsheets/d/1ddo2k0WYa0kyPU6jkpPVHXPne4O1Pta1XHHKmjHMld0/export?gid=0&format=xlsx
+    //(A bit hidden Google Drive functionality to download public files without authentication (OAuth) with Google Drive API)
     private String fixURL(String URL) {
         String fixedUrl = URL.stripLeading().stripTrailing();
-        String fileFormatAndExport = "export?gid=0&format=xlsx";
+        String fileFormatAndExport = "export?format=xlsx";
         String oldPart = "edit#gid=0";
         fixedUrl = fixedUrl.replace(oldPart, fileFormatAndExport);
 

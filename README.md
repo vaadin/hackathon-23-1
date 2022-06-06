@@ -1,8 +1,20 @@
-# SpreadSheet + Vite Vaadin Hackhaton 2022
+# SpreadSheet + Vite Vaadin Hackhaton with Google Drive link imports 2022
 
-This project can be used as a starting point to create your own Vaadin application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+Created a small feature/Proof of concept for Spreadsheet to be able to read directly from Google Spreadsheet links:
 
+2. You just need to paste (a publicly) reachable link for your Google Spreadsheet,
+3. Click on import button
+4. Wait some millisecs and the whole Google Sheet shall be imported to your spreadsheet and you can work on your data,
+
+It is basically doing the followings:
+- exporting the Google Sheet content to .xlxs file,
+- then downloading it to into the app file system,
+- then importing the file to WorkBook object,
+- spreadsheet component is using WorkBook object,
+- and then the component reload is happening underneath when we setting up the WorkBook,
+
+I think customers with lot of Google Sheet docs (just like my former employers) could appreciate, and would be happy about a functionality like this...
+(Can support later file based, CSV, TSV and other imports as well)
 ## Running the application
 
 The project is a standard Maven project. To run it from the command line,
