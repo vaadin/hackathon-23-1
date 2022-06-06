@@ -1,21 +1,28 @@
 package com.vaadin.hackathon.manolo.data.endpoint;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.hackathon.manolo.data.entity.SamplePerson;
-import com.vaadin.hackathon.manolo.data.service.SamplePersonService;
-import dev.hilla.Endpoint;
-import dev.hilla.Nonnull;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hackathon.manolo.data.entity.SamplePerson;
+import com.vaadin.hackathon.manolo.data.service.SamplePersonService;
+
+import dev.hilla.Endpoint;
+import dev.hilla.Nonnull;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Sinks.Many;
 
 @Endpoint
 @AnonymousAllowed
 public class SamplePersonEndpoint {
 
     private final SamplePersonService service;
+    private Many<UUID> sink = Sinks.many().multicast().directBestEffort();
 
     @Autowired
     public SamplePersonEndpoint(SamplePersonService service) {
@@ -33,10 +40,13 @@ public class SamplePersonEndpoint {
 
     @Nonnull
     public SamplePerson update(@Nonnull SamplePerson entity) {
-        return service.update(entity);
+        entity = service.update(entity);
+        sink.tryEmitNext(entity.getId());
+        return entity;
     }
 
     public void delete(@Nonnull UUID id) {
+        sink.tryEmitNext(id);
         service.delete(id);
     }
 
@@ -44,4 +54,8 @@ public class SamplePersonEndpoint {
         return service.count();
     }
 
+    @Nonnull
+    public Flux<UUID> personUpdated() {
+        return sink.asFlux();
+    }
 }

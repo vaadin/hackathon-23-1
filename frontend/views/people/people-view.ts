@@ -5,14 +5,14 @@ import '@vaadin/date-picker';
 import '@vaadin/date-time-picker';
 import '@vaadin/form-layout';
 import '@vaadin/grid';
-import { Grid, GridDataProviderCallback, GridDataProviderParams } from '@vaadin/grid';
+import type { Grid, GridDataProviderCallback, GridDataProviderParams } from '@vaadin/grid';
 import { columnBodyRenderer } from '@vaadin/grid/lit';
 import '@vaadin/grid/vaadin-grid-sort-column';
 import '@vaadin/horizontal-layout';
 import '@vaadin/icon';
 import '@vaadin/icons';
-import '@vaadin/notification';
-import { Notification } from '@vaadin/notification';
+import '@vaadin/checkbox'
+import  { Notification } from '@vaadin/notification';
 import '@vaadin/polymer-legacy-adapter';
 import '@vaadin/split-layout';
 import '@vaadin/text-field';
@@ -24,7 +24,7 @@ import Sort from 'Frontend/generated/dev/hilla/mappedtypes/Sort';
 import Direction from 'Frontend/generated/org/springframework/data/domain/Sort/Direction';
 import * as SamplePersonEndpoint from 'Frontend/generated/SamplePersonEndpoint';
 import { html } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { View } from '../view';
 
 @customElement('people-view')
@@ -32,7 +32,7 @@ export class PeopleView extends View {
   @query('#grid')
   private grid!: Grid;
 
-  @property({ type: Number })
+  @state()
   private gridSize = 0;
 
   private gridDataProvider = this.getGridData.bind(this);
@@ -50,15 +50,15 @@ export class PeopleView extends View {
             .dataProvider=${this.gridDataProvider}
             @active-item-changed=${this.itemSelected}
           >
-            <vaadin-grid-sort-column path="firstName" auto-width></vaadin-grid-sort-column>
+            <vaadin-grid-sort-column frozen path="firstName" auto-width></vaadin-grid-sort-column>
             <vaadin-grid-sort-column path="lastName" auto-width></vaadin-grid-sort-column>
             <vaadin-grid-sort-column path="email" auto-width></vaadin-grid-sort-column>
             <vaadin-grid-sort-column path="phone" auto-width></vaadin-grid-sort-column>
             <vaadin-grid-sort-column path="dateOfBirth" auto-width></vaadin-grid-sort-column>
-            <vaadin-grid-sort-column path="occupation" auto-width></vaadin-grid-sort-column>
-            <vaadin-grid-column
+            <vaadin-grid-sort-column path="occupation" auto-width fro></vaadin-grid-sort-column>
+            <vaadin-grid-column frozen-to-end
               path="important"
-              auto-width
+              width="55px"
               ${columnBodyRenderer<SamplePerson>((item) =>
                 item.important
                   ? html`<vaadin-icon
@@ -106,6 +106,7 @@ export class PeopleView extends View {
           <vaadin-horizontal-layout class="button-layout">
             <vaadin-button theme="primary" @click=${this.save}>Save</vaadin-button>
             <vaadin-button theme="tertiary" @click=${this.cancel}>Cancel</vaadin-button>
+            <vaadin-button theme="secondary" @click=${this.delete}>Delete</vaadin-button>
           </vaadin-horizontal-layout>
         </div>
       </vaadin-split-layout>
@@ -130,6 +131,7 @@ export class PeopleView extends View {
   async connectedCallback() {
     super.connectedCallback();
     this.gridSize = (await SamplePersonEndpoint.count()) ?? 0;
+    SamplePersonEndpoint.personUpdated().onNext(this.refreshGrid);
   }
 
   private async itemSelected(event: CustomEvent) {
@@ -152,7 +154,6 @@ export class PeopleView extends View {
         // We added a new item
         this.gridSize++;
       }
-      this.clearForm();
       this.refreshGrid();
       Notification.show(`SamplePerson details stored.`, { position: 'bottom-start' });
     } catch (error: any) {
@@ -161,6 +162,13 @@ export class PeopleView extends View {
       } else {
         throw error;
       }
+    }
+  }
+
+  private async delete() {
+    if (this.binder.value.id) {
+      await SamplePersonEndpoint.delete(this.binder.value.id);
+      this.refreshGrid();
     }
   }
 
